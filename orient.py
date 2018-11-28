@@ -89,8 +89,8 @@ def nearest_test(train_file, test_file):
             distances.extend([[image, orientation, euclidean(train,test)]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
-        sys.stdout.write("\rClassifying item %i" % i)
-        sys.stdout.flush()
+        # sys.stdout.write("\rClassifying item %i" % i)
+        # sys.stdout.flush()
         i += 1
     return results
     
