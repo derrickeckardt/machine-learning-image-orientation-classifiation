@@ -54,11 +54,12 @@ def output(results):
     print 'Total Accuracy:   %.3f%%' % (correct/float(total_images)*100)
 
     # Output test results data to file
+    output_filename = "output.txt"
+    output_file = open(output_filename,"w+")
     for image, guess, actual in results:
-        output_filename = "output.txt"
-        output_file = open(output_filename,"w+")
-        output_file.write(traintest + "/" + str(image) + ".jpg" + " " + str(guess))  #add input image number, # add guess
-        output_file.close
+        print image, guess, actual
+        output_file.write(traintest + "/" + str(image) +" "+ str(guess)+"\n")  #add input image number, # add guess
+    output_file.close
     print "Individual test cases output to: output.txt"
         
 # Use within nearest()
