@@ -26,6 +26,8 @@
 ################################################################################
 ################################################################################
 
+# Improve, find the optimal k number
+
 import sys
 from operator import itemgetter
 from collections import Counter
@@ -43,7 +45,7 @@ def import_images(input_file):
             training_images.extend([[splitline[0][6:], int(splitline[1]), [int(value) for value in splitline[2:]]]])
     return training_images
 
-# For all
+# For all take a list of list with inputs in form of [image, guess_orientation, actual_orientation]
 def output(results):
     correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
     total_images = len(results)
@@ -53,11 +55,10 @@ def output(results):
     print 'Photos Incorrect: '+str(total_images - correct)
     print 'Total Accuracy:   %.3f%%' % (correct/float(total_images)*100)
 
-    # Output test results data to file
+    # Print to file
     output_filename = "output.txt"
     output_file = open(output_filename,"w+")
     for image, guess, actual in results:
-        print image, guess, actual
         output_file.write(traintest + "/" + str(image) +" "+ str(guess)+"\n")  #add input image number, # add guess
     output_file.close
     print "Individual test cases output to: output.txt"
@@ -67,7 +68,7 @@ def euclidean(train_features,test_features):
     return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
 
 def nearest_train():
-    # Just going to copy the file over, since kNN is dependent on the test data
+    # Only copy the file over, since kNN is dependent on the test data
     train_output = open(model_file,"w+")
     with open(input_file, 'r') as file:
         for line in file:
@@ -80,12 +81,17 @@ def nearest_test(train_file, test_file):
     test_images = import_images(test_file)
     k = 5
     results = []
+    i = 0
+    print "Classifying "+str(len(test_images))+ " images."
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
             distances.extend([[image, orientation, euclidean(train,test)]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
+        sys.stdout.write("\rClassifying item %i" % i)
+        sys.stdout.flush()
+        i += 1
     return results
     
 
