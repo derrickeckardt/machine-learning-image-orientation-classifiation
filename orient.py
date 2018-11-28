@@ -27,6 +27,8 @@
 ################################################################################
 
 import sys
+from operator import itemgetter
+from collections import Counter
 
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
@@ -56,11 +58,14 @@ def nearest_train():
 def nearest_test(train_file, test_file):
     train_images = import_images(train_file)
     test_images = import_images(test_file)
-    distances = []
+    k = 5
     for test_image, actual_orientation, test in test_images:
+        distances = []
         for image, orientation, train in train_images:
             distances.extend([[image, orientation, euclidean(train,test)]])
-        print test_image
+        votes = [vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]
+        print votes
+    
 
 if traintest == "train":
     # Import train file
