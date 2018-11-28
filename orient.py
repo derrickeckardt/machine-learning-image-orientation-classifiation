@@ -8,7 +8,7 @@
 # 
 # 
 ###############################################################################
-# CS B551 Fall 2018, Assignment #3 - Part 2: Optical Character Recognition (OCR)
+# CS B551 Fall 2018, Assignment #4 - Machine Learning
 #
 # Completed by:
 # Derrick Eckardt
@@ -31,23 +31,7 @@ import sys
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
 
-def nearest():
-    pass
-
-def adaboost():
-    pass
-
-def forest():
-    pass
-
-def best():
-    pass
-
-def other_ml_technique():
-    pass
-
-if traintest == "train":
-    # Import train file
+def import_images(input_file):
     training_images =[]
     with open(input_file, 'r') as file:
         for line in file:
@@ -55,19 +39,43 @@ if traintest == "train":
             # Had to convert these numbers into integers.
             # List of list, with format of [train_image, orientation, [rgb values]]
             training_images.extend([[splitline[0][6:], int(splitline[1]), [int(value) for value in splitline[2:]]]])
-        
+    return training_images
 
-    # Train!
-    for image in training_images:
-        pass
+def euclidean(train_features,test_features):
+    return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
 
-    # Train Mode Outputs
-    # Output model_file
-    training_file = open(model_file, "w+")
-    training_file.write("Something") # Add model information
-    training_file.close
+def nearest_train():
+    # Just going to copy the file over, since kNN is dependent on the test data
+    train_output = open(model_file,"w+")
+    with open(input_file, 'r') as file:
+        for line in file:
+            train_output.write(line)
+    train_output.close
+    print "k-Nearest Neighbors Model outputted to: "+model_file
+    
+def nearest_test(train_file, test_file):
+    train_images = import_images(train_file)
+    test_images = import_images(test_file)
+    distances = []
+    for test_image, actual_orientation, test in test_images:
+        for image, orientation, train in train_images:
+            distances.extend([[image, orientation, euclidean(train,test)]])
+        print test_image
+
+if traintest == "train":
+    # Import train file
+    if model == "nearest":
+        nearest_train()
+    else:
+        print "Unsupported Machine Learning Model"
 
 elif traintest == "test":
+
+    if model == "nearest":
+        nearest_test(model_file, input_file)
+    else:
+        print "Unsupported Machine Learning Model"
+
     # Test Mode Outputs
     # Output information to screen
     print 'Photos incorrectly evaluated: '
@@ -83,3 +91,23 @@ elif traintest == "test":
 
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
+    
+#### To Do    
+def adaboost():
+    pass
+
+def forest():
+    pass
+
+def best():
+    pass
+
+def other_ml_technique():
+    pass
+
+def output_model():
+    # Train Mode Outputs
+    # Output model_file
+    training_file = open(model_file, "w+")
+    training_file.write("Something") # Add model information
+    training_file.close
