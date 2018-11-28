@@ -43,6 +43,25 @@ def import_images(input_file):
             training_images.extend([[splitline[0][6:], int(splitline[1]), [int(value) for value in splitline[2:]]]])
     return training_images
 
+# For all
+def output(results):
+    correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
+    total_images = len(results)
+    # Print to screen
+    print "Utilizing the "+traintest+" model, the results are as follows:"
+    print 'Photos Correct:   '+str(correct)
+    print 'Photos Incorrect: '+str(total_images - correct)
+    print 'Total Accuracy:   %.3f%%' % (correct/float(total_images)*100)
+
+    # Output test results data to file
+    for image, guess, actual in results:
+        output_filename = "output.txt"
+        output_file = open(output_filename,"w+")
+        output_file.write(traintest + "/" + str(image) + ".jpg" + " " + str(guess))  #add input image number, # add guess
+        output_file.close
+    print "Individual test cases output to: output.txt"
+        
+# Use within nearest()
 def euclidean(train_features,test_features):
     return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
 
@@ -59,12 +78,14 @@ def nearest_test(train_file, test_file):
     train_images = import_images(train_file)
     test_images = import_images(test_file)
     k = 5
+    results = []
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
             distances.extend([[image, orientation, euclidean(train,test)]])
-        votes = [vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]
-        print votes
+        vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
+        results.extend([[test_image, vote_guess, actual_orientation]])
+    return results
     
 
 if traintest == "train":
@@ -77,23 +98,12 @@ if traintest == "train":
 elif traintest == "test":
 
     if model == "nearest":
-        nearest_test(model_file, input_file)
+        results = nearest_test(model_file, input_file)
     else:
         print "Unsupported Machine Learning Model"
 
-    # Test Mode Outputs
-    # Output information to screen
-    print 'Photos incorrectly evaluated: '
-    print 'Photos Correctly Evaluated: '
-    print 'Total Accuracy: '
+    output(results)
     
-    # Output test results data to file
-    output_filename = "output.txt"
-    output_file = open(output_filename,"w+")
-    output_file.write(traintest + "/" + "#####.jpg" + " " + "XXX")  #add input image number, # add guess
-    output_file.close
-    print "Individual test cases output to 'output.txt'"
-
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
     
@@ -110,9 +120,11 @@ def best():
 def other_ml_technique():
     pass
 
+# For adaboost, forest
 def output_model():
-    # Train Mode Outputs
+    # Train Mode Outputs for ada 
     # Output model_file
     training_file = open(model_file, "w+")
     training_file.write("Something") # Add model information
     training_file.close
+
