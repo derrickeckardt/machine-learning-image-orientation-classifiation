@@ -31,6 +31,7 @@
 import sys
 from operator import itemgetter
 from collections import Counter
+import profile
 
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
@@ -65,7 +66,11 @@ def output(results):
         
 # Use within nearest()
 def euclidean(train_features,test_features):
-    return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
+    total_features = len(train_features)
+    feature_range = range(total_features)
+    return sum([(train_features[i]-test_features[i])**2 for i in feature_range])
+    # return sum([(train_features[i]-test_features[i])**2 for i in range(len(train_features)))])
+    # return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
 
 def nearest_train():
     # Only copy the file over, since kNN is dependent on the test data
@@ -81,16 +86,17 @@ def nearest_test(train_file, test_file):
     test_images = import_images(test_file)
     k = 5
     results = []
-    i = 0
+    i = 1
+    total_features = len(train_images[0][2])
+    feature_range = range(total_features)
     print "Classifying "+str(len(test_images))+ " images."
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
-            distances.extend([[image, orientation, euclidean(train,test)]])
+            distances.extend([[image, orientation, sum([(train[j]-test[j])**2 for j in feature_range])]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
-        # sys.stdout.write("\rClassifying item %i" % i)
-        # sys.stdout.flush()
+        # print "Classifying image ", i
         i += 1
     return results
     
@@ -105,11 +111,12 @@ if traintest == "train":
 elif traintest == "test":
 
     if model == "nearest":
-        results = nearest_test(model_file, input_file)
+        # results = nearest_test(model_file, input_file)
+        profile.run("nearest_test(model_file,input_file)")
     else:
         print "Unsupported Machine Learning Model"
 
-    output(results)
+    # output(results)
     
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
