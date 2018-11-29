@@ -51,20 +51,20 @@ def output(results):
     correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
     total_images = len(results)
     # Print to screen
-    print "Utilizing the "+traintest+" model, the results are as follows:"
-    print 'Photos Correct:   '+str(correct)
-    print 'Photos Incorrect: '+str(total_images - correct)
-    print 'Total Accuracy:   %.3f%%' % (correct/float(total_images)*100)
+    print "Utilizing the "+model+" model, the results are as follows:"
+    print 'Photos Correct:        '+str(correct)
+    print 'Photos Incorrect:      '+str(total_images - correct)
+    print 'Total Accuracy:        %.3f%%' % (correct/float(total_images)*100)
 
     # Print to file
-    output_filename = "output.txt"
-    output_file = open(output_filename,"w+")
+    output_file = open("output.txt","w+")
     for image, guess, actual in results:
         output_file.write(traintest + "/" + str(image) +" "+ str(guess)+"\n")  #add input image number, # add guess
     output_file.close
-    print "Individual test cases output to: output.txt"
+    print "Individual test cases outputted to 'output.txt'."
         
 # Use within nearest()
+# Not currently used, as found it slightly faster to embed formula within code
 def euclidean(train_features,test_features):
     feature_range = range(len(train_features))
     return sum([(train_features[i]-test_features[i])**2 for i in feature_range])
@@ -78,23 +78,19 @@ def nearest_train():
         for line in file:
             train_output.write(line)
     train_output.close
-    print "k-Nearest Neighbors Model outputted to: "+model_file
+    print "k-Nearest Neighbors Model outputted to '"+model_file+"'."
     
 def nearest_test(train_file, test_file, k):
-    train_images = import_images(train_file)
-    test_images = import_images(test_file)
-    results = []
-    i = 1
-    feature_range = range(len(train_images[0][2]))
-    # print "Classifying "+str(len(test_images))+ " images."
+    print "Loading training images from '"+train_file+"'."; train_images = import_images(train_file)
+    print "Loading test images from '"+test_file+"'."; test_images = import_images(test_file)
+    print "Classifying %d images. Estimated runtime is %.3f minutes." % (len(test_images) , (len(test_images) / 60.0))
+    feature_range, results = range(len(train_images[0][2])), []
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
             distances.extend([[image, orientation, sum([(train[j]-test[j])**2 for j in feature_range])]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
-        # print "Classifying image ", i
-        i += 1
     return results
     
 
@@ -103,21 +99,21 @@ if traintest == "train":
     if model == "nearest":
         nearest_train()
     else:
-        print "Unsupported Machine Learning Model"
+        print "Unsupported Machine Learning Model."
 
 elif traintest == "test":
 
     if model == "nearest":
-        for k in [1,3,5,7,9,11,13,15,17,19,21,23,25,30,35,40,45,50,60,70,80,90,100]:
-            print "k = ",k
-            results = nearest_test(model_file, input_file, k)
-            output(results)
-
+        print "Classifying via k-Nearest Neighbors algorithm."
+        # for k in [1,3,5,7,9,11,13,15,17,19,21,23,25,30,35,40,45,50,60,70,80,90,100]:
+            # print "k = ",k
+        results = nearest_test(model_file, input_file, 45)
+            # output(results)
         # profile.run("nearest_test(model_file,input_file)")
     else:
-        print "Unsupported Machine Learning Model"
+        print "Unsupported Machine Learning Model."
 
-    # output(results)
+    output(results)
     
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
