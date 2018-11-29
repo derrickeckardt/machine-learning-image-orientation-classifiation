@@ -80,21 +80,20 @@ def nearest_train():
     train_output.close
     print "k-Nearest Neighbors Model outputted to: "+model_file
     
-def nearest_test(train_file, test_file):
+def nearest_test(train_file, test_file, k):
     train_images = import_images(train_file)
     test_images = import_images(test_file)
-    k = 11
     results = []
     i = 1
     feature_range = range(len(train_images[0][2]))
-    print "Classifying "+str(len(test_images))+ " images."
+    # print "Classifying "+str(len(test_images))+ " images."
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
             distances.extend([[image, orientation, sum([(train[j]-test[j])**2 for j in feature_range])]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
-        print "Classifying image ", i
+        # print "Classifying image ", i
         i += 1
     return results
     
@@ -109,18 +108,25 @@ if traintest == "train":
 elif traintest == "test":
 
     if model == "nearest":
-        results = nearest_test(model_file, input_file)
+        for k in [1,3,5,7,9,11,13,15,17,19,21,23,25,30,35,40,45,50,60,70,80,90,100]:
+            print "k = ",k
+            results = nearest_test(model_file, input_file, k)
+            output(results)
+
         # profile.run("nearest_test(model_file,input_file)")
     else:
         print "Unsupported Machine Learning Model"
 
-    output(results)
+    # output(results)
     
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
     
 #### To Do    
 def adaboost():
+    pass
+
+def entropy():
     pass
 
 def forest():
