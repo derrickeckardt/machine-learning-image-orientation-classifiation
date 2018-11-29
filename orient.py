@@ -66,8 +66,7 @@ def output(results):
         
 # Use within nearest()
 def euclidean(train_features,test_features):
-    total_features = len(train_features)
-    feature_range = range(total_features)
+    feature_range = range(len(train_features))
     return sum([(train_features[i]-test_features[i])**2 for i in feature_range])
     # return sum([(train_features[i]-test_features[i])**2 for i in range(len(train_features)))])
     # return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
@@ -84,14 +83,15 @@ def nearest_train():
 def nearest_test(train_file, test_file):
     train_images = import_images(train_file)
     test_images = import_images(test_file)
-    k = 5
+    k = 11
     results = []
     i = 1
+    feature_range = range(len(train_images[0][2]))
     print "Classifying "+str(len(test_images))+ " images."
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
-            distances.extend([[image, orientation, euclidean(train,test)]])
+            distances.extend([[image, orientation, sum([(train[j]-test[j])**2 for j in feature_range])]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
         print "Classifying image ", i
