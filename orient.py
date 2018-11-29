@@ -93,7 +93,7 @@ def nearest_test(train_file, test_file):
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
-            distances.extend([[image, orientation, sum([(train[j]-test[j])**2 for j in feature_range])]])
+            distances.extend([[image, orientation, sum((train[j]-test[j])**2 for j in feature_range)]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
         # print "Classifying image ", i
@@ -111,12 +111,12 @@ if traintest == "train":
 elif traintest == "test":
 
     if model == "nearest":
-        # results = nearest_test(model_file, input_file)
-        profile.run("nearest_test(model_file,input_file)")
+        results = nearest_test(model_file, input_file)
+        # profile.run("nearest_test(model_file,input_file)")
     else:
         print "Unsupported Machine Learning Model"
 
-    # output(results)
+    output(results)
     
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
