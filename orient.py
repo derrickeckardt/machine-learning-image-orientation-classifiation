@@ -88,7 +88,11 @@ def nearest_test(train_file, test_file, k):
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
-            distances.extend([[image, orientation, sum([(train[j]-test[j])**2 for j in feature_range])]])
+            euclidean = 0
+            # This was actually the fastest way
+            for j in feature_range:
+                euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+            distances.extend([[image, orientation, euclidean]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
     return results
@@ -109,7 +113,7 @@ elif traintest == "test":
             # print "k = ",k
         results = nearest_test(model_file, input_file, 45)
             # output(results)
-        # profile.run("nearest_test(model_file,input_file)")
+        # profile.run("nearest_test(model_file,input_file, 45)")
     else:
         print "Unsupported Machine Learning Model."
 
