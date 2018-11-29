@@ -32,6 +32,7 @@ import sys
 from operator import itemgetter
 from collections import Counter
 import profile
+import numpy as np
 
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
@@ -88,10 +89,10 @@ def nearest_test(train_file, test_file, k):
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
-            euclidean = 0
-            # This was actually the fastest way
-            for j in feature_range:
-                euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+            # euclidean = 0 # This was actually the fastest way
+            # for j in feature_range:
+            #     euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+            euclidean = np.sum([(train[j]-test[j])**2 for j in feature_range])
             distances.extend([[image, orientation, euclidean]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
