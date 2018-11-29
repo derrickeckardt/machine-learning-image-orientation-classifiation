@@ -87,16 +87,14 @@ def nearest_test(train_file, test_file):
     k = 5
     results = []
     i = 1
-    total_features = len(train_images[0][2])
-    feature_range = range(total_features)
     print "Classifying "+str(len(test_images))+ " images."
     for test_image, actual_orientation, test in test_images:
         distances = []
         for image, orientation, train in train_images:
-            distances.extend([[image, orientation, sum((train[j]-test[j])**2 for j in feature_range)]])
+            distances.extend([[image, orientation, euclidean(train,test)]])
         vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
-        # print "Classifying image ", i
+        print "Classifying image ", i
         i += 1
     return results
     
