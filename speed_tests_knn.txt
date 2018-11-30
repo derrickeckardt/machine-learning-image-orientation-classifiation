@@ -176,3 +176,53 @@ Most recent
         1  143.692  143.692  198.212  198.212 orient.py:83(nearest_test)
         1    0.000    0.000  198.244  198.244 profile:0(nearest_test(model_file,input_file, 45))
         0    0.000             0.000          profile:0(profiler)
+        
+Final version
+
+Classifying via k-Nearest Neighbors algorithm.
+Loading training images from 'model_file.txt'.
+Loading test images from 'test-data.txt'.
+Classifying 943 images. Estimated runtime is 250.000 minutes.
+         1119040 function calls (1119037 primitive calls) in 297.376 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.000    0.000    0.000    0.000 :0(__subclasses__)
+        4    0.000    0.000    0.000    0.000 :0(add)
+   368349    2.016    0.000    2.016    0.000 :0(extend)
+    42435    0.228    0.000    0.228    0.000 :0(get)
+      945    0.008    0.000    0.008    0.000 :0(getattr)
+      943    0.024    0.000    0.064    0.000 :0(isinstance)
+      3/1    0.000    0.000    0.000    0.000 :0(issubclass)
+      943    0.004    0.000    0.004    0.000 :0(iter)
+      943    0.004    0.000    0.004    0.000 :0(iteritems)
+        3    0.000    0.000    0.000    0.000 :0(len)
+      943    0.024    0.000    0.024    0.000 :0(max)
+        2    0.000    0.000    0.000    0.000 :0(open)
+   329487    2.056    0.000    2.056    0.000 :0(pop)
+        2    0.000    0.000    0.000    0.000 :0(range)
+        2    0.000    0.000    0.000    0.000 :0(remove)
+        1    0.000    0.000    0.000    0.000 :0(setprofile)
+   329487    5.024    0.000    5.024    0.000 :0(sorted)
+    37919    0.488    0.000    0.488    0.000 :0(split)
+        1    0.036    0.036  297.376  297.376 <string>:1(<module>)
+        2    0.000    0.000    0.000    0.000 _abcoll.py:98(__subclasshook__)
+        2    0.000    0.000    0.000    0.000 _weakrefset.py:16(__init__)
+        2    0.000    0.000    0.000    0.000 _weakrefset.py:20(__enter__)
+        2    0.000    0.000    0.000    0.000 _weakrefset.py:26(__exit__)
+        2    0.000    0.000    0.000    0.000 _weakrefset.py:36(__init__)
+        2    0.000    0.000    0.000    0.000 _weakrefset.py:52(_commit_removals)
+        4    0.000    0.000    0.000    0.000 _weakrefset.py:58(__iter__)
+     1887    0.012    0.000    0.012    0.000 _weakrefset.py:70(__contains__)
+        2    0.000    0.000    0.000    0.000 _weakrefset.py:83(add)
+      943    0.020    0.000    0.040    0.000 abc.py:128(__instancecheck__)
+      2/1    0.000    0.000    0.000    0.000 abc.py:148(__subclasscheck__)
+      943    0.012    0.000    0.576    0.001 collections.py:438(__init__)
+      943    0.012    0.000    0.104    0.000 collections.py:457(most_common)
+      943    0.272    0.000    0.564    0.001 collections.py:501(update)
+      943    0.060    0.000    0.088    0.000 heapq.py:436(nlargest)
+        2    3.644    1.822    4.320    2.160 orient.py:41(import_images)
+        1  283.432  283.432  297.340  297.340 orient.py:85(nearest_test)
+        1    0.000    0.000  297.376  297.376 profile:0(nearest_test(model_file,input_file, 45))
+        0    0.000             0.000          profile:0(profiler)

@@ -30,7 +30,7 @@
 
 import sys
 from operator import itemgetter
-from collections import Counter
+from collections import Counter, deque
 import profile
 import numpy as np
 from scipy.spatial.distance import euclidean as euclid
@@ -85,19 +85,53 @@ def nearest_train():
 def nearest_test(train_file, test_file, k):
     print "Loading training images from '"+train_file+"'."; train_images = import_images(train_file)
     print "Loading test images from '"+test_file+"'."; test_images = import_images(test_file)
-    print "Classifying %d images. Estimated runtime is %.3f minutes." % (len(test_images) , (len(test_images) / 60.0))
+    print "Classifying %d images. Estimated runtime is %d minutes and %.0f seconds." % (len(test_images) , (len(test_images) / 180), ((len(test_images) % 180) * (60.0/180.0)))
     feature_range, results = range(len(train_images[0][2])), []
+    # create dictionary of squares, save computation time later.
+    # takes a lot of time to keep finding euclidean distances.
+    euclid_dict = {}
+    euc_range = range(0,256)
+    for eu in euc_range:
+        euclid_dict[eu] = {}
+        for ue in euc_range:
+            euclid_dict[eu][ue] = (eu-ue)**2
     for test_image, actual_orientation, test in test_images:
-        distances = []
+        distances = [["",360,1000000000]]*k
+        max_k = distances[-1][2]
         for image, orientation, train in train_images:
-            # euclidean = 0 # This was actually the fastest way
-            # for j in feature_range:
-            #     euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
-            # euclidean = np.sum([(train[j]-test[j])**2 for j in feature_range])
-            euclidean = euclid(train,test)
-            distances.extend([[image, orientation, euclidean]])
-        vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
+            euclidean = 0 # This was actually the fastest way
+            for j in feature_range:
+                # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+                euclidean += euclid_dict[train[j]][test[j]]
+                if euclidean > max_k:
+                    break
+            # euclidean = np.cumsum([(train[j]-test[j])**2 for j in feature_range])[-1]
+            # print euclidean
+            # euclidean = euclid(train,test)
+            if euclidean < max_k:
+                # distances[distances.index(max_k)] = [image, orientation, euclidean]
+                distances.pop()
+                distances.extend([[image, orientation, euclidean]])    
+                distances = sorted(distances, key=itemgetter(2))
+                max_k = distances[-1][2]
+        #         print "interim", distances
+        # print "final  ",distances
+        vote_guess = Counter([vote[1] for vote in distances]).most_common(1)[0][0]
         results.extend([[test_image, vote_guess, actual_orientation]])
+    # back-up copy
+    # for test_image, actual_orientation, test in test_images:
+    #     distances = []
+    #     for image, orientation, train in train_images:
+    #         euclidean = 0 # This was actually the fastest way
+    #         for j in feature_range:
+    #             euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+    #         # euclidean = np.cumsum([(train[j]-test[j])**2 for j in feature_range])[-1]
+    #         # print euclidean
+    #         # euclidean = euclid(train,test)
+    #         distances.extend([[image, orientation, euclidean]])
+    #     vote_guess = Counter([vote[1] for vote in sorted(distances, key=itemgetter(2))[:k]]).most_common(1)[0][0]
+    #     results.extend([[test_image, vote_guess, actual_orientation]])
+
     return results
     
 
