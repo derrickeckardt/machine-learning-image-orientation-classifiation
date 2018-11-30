@@ -27,6 +27,7 @@
 ################################################################################
 
 # Improve, find the optimal k number
+# Remove, the iterative k finding for final copy
 
 import sys
 from operator import itemgetter
@@ -85,16 +86,19 @@ def nearest_train():
 def nearest_test(train_file, test_file, k):
     print "Loading training images from '"+train_file+"'."; train_images = import_images(train_file)
     print "Loading test images from '"+test_file+"'."; test_images = import_images(test_file)
-    print "Classifying %d images. Estimated runtime is %d minutes and %.0f seconds." % (len(test_images) , (len(test_images) / 180), ((len(test_images) % 180) * (60.0/180.0)))
+    print "Classifying %d images. Estimated runtime is %d minutes and %.0f seconds." % (len(test_images) , (len(test_images) / 150), ((len(test_images) % 150) * (60.0/150.0)))
     feature_range, results = range(len(train_images[0][2])), []
     # create dictionary of squares, save computation time later.
     # takes a lot of time to keep finding euclidean distances.
     euclid_dict = {}
-    euc_range = range(0,256)
+    euc_range = range(-256,256)
+    # euc_range = range(0,256)
     for eu in euc_range:
-        euclid_dict[eu] = {}
-        for ue in euc_range:
-            euclid_dict[eu][ue] = (eu-ue)**2
+        euclid_dict[eu] = eu**2
+    # for eu in euc_range:
+    #     euclid_dict[eu] = {}
+    #     for ue in euc_range:
+    #         euclid_dict[eu][ue] = (eu-ue)**2
     for test_image, actual_orientation, test in test_images:
         distances = [["",360,1000000000]]*k
         max_k = distances[-1][2]
@@ -102,7 +106,7 @@ def nearest_test(train_file, test_file, k):
             euclidean = 0 # This was actually the fastest way
             for j in feature_range:
                 # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
-                euclidean += euclid_dict[train[j]][test[j]]
+                euclidean += euclid_dict[train[j]-test[j]]
                 if euclidean > max_k:
                     break
             # euclidean = np.cumsum([(train[j]-test[j])**2 for j in feature_range])[-1]
@@ -134,7 +138,6 @@ def nearest_test(train_file, test_file, k):
 
     return results
     
-
 if traintest == "train":
     # Import train file
     if model == "nearest":
@@ -147,8 +150,16 @@ elif traintest == "test":
     if model == "nearest":
         print "Classifying via k-Nearest Neighbors algorithm."
         # for k in [1,3,5,7,9,11,13,15,17,19,21,23,25,30,35,40,45,50,60,70,80,90,100]:
+        # knn_file = open("knn-optimal.txt","w+")
+        # for k in range(1,2):
             # print "k = ",k
-        results = nearest_test(model_file, input_file, 45)
+        k=11
+        results = nearest_test(model_file, input_file, k)
+            # correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
+        #     total_images = len(results)
+        #     print "k =",k,"  ",correct/total_images
+        #     knn_file.write(str(k)+" "+str(correct)+" "+str(total_images))
+        # knn_file.close
             # output(results)
         # profile.run("nearest_test(model_file,input_file, 45)")
     else:
