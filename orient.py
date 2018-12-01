@@ -117,11 +117,14 @@ def nearest_test(train_file, test_file, k):
             euclidean = 0 # This was actually the fastest way
             for j in feature_range:
                 # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+                euclidean += euclid_dict[train[j]-test[j]]
                 # euclidean += euclid_dict[train_dict[j]-test_dict[j]]
-                # euclidean += euclid_dict[train[j]-test[j]]
+                # interim = train[j]-test[j]
+                # euclidean += interim** 2 #interim
                 # euclidean += (train[j]-test[j]) **2   
                 # euclidean += (train[j]-test[j]) *  (train[j]-test[j])
-                euclidean += pow(train[j]-test[j], 2)
+                # euclidean += pow(train[j]-test[j], 2)
+                # euclidean += square(train[j]-test[j])
                 # euclidean += euclid_dict[str(train[j])+"-"+str(test[j])]
                 if euclidean > max_k:
                     break
