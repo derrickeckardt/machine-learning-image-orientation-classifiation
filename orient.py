@@ -35,6 +35,8 @@ from collections import Counter, deque
 import profile
 import numpy as np
 from scipy.spatial.distance import euclidean as euclid
+from math import pow
+from numpy import square
 
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
@@ -103,7 +105,7 @@ def nearest_test(train_file, test_file, k):
     #     for ue in euc_range:
     #         euclid_dict[str(eu)+"-"+str(ue)] = (eu-ue)**2
     for test_image, actual_orientation, test in test_images:
-        distances = [["",360,1000000000]]*k
+        distances = [["",360,float('inf')]]*k
         max_k = distances[-1][2]
         # test_dict = {}
         # for m in range(len(test)):
@@ -116,7 +118,10 @@ def nearest_test(train_file, test_file, k):
             for j in feature_range:
                 # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
                 # euclidean += euclid_dict[train_dict[j]-test_dict[j]]
-                euclidean += euclid_dict[train[j]-test[j]]
+                # euclidean += euclid_dict[train[j]-test[j]]
+                euclidean += (train[j]-test[j]) **2   
+                euclidean += (train[j]-test[j]) *  (train[j]-test[j])
+                euclidean += pow(train[j]-test[j], 2)
                 # euclidean += euclid_dict[str(train[j])+"-"+str(test[j])]
                 if euclidean > max_k:
                     break
