@@ -99,14 +99,25 @@ def nearest_test(train_file, test_file, k):
     #     euclid_dict[eu] = {}
     #     for ue in euc_range:
     #         euclid_dict[eu][ue] = (eu-ue)**2
+    # for eu in euc_range:
+    #     for ue in euc_range:
+    #         euclid_dict[str(eu)+"-"+str(ue)] = (eu-ue)**2
     for test_image, actual_orientation, test in test_images:
         distances = [["",360,1000000000]]*k
         max_k = distances[-1][2]
+        # test_dict = {}
+        # for m in range(len(test)):
+        #     test_dict[m] = test[m]
         for image, orientation, train in train_images:
+            # train_dict ={}
+            # for m in range(len(train)):
+            #     train_dict[m] = train[m]
             euclidean = 0 # This was actually the fastest way
             for j in feature_range:
                 # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
+                # euclidean += euclid_dict[train_dict[j]-test_dict[j]]
                 euclidean += euclid_dict[train[j]-test[j]]
+                # euclidean += euclid_dict[str(train[j])+"-"+str(test[j])]
                 if euclidean > max_k:
                     break
             # euclidean = np.cumsum([(train[j]-test[j])**2 for j in feature_range])[-1]
@@ -114,8 +125,9 @@ def nearest_test(train_file, test_file, k):
             # euclidean = euclid(train,test)
             if euclidean < max_k:
                 # distances[distances.index(max_k)] = [image, orientation, euclidean]
-                distances.pop()
-                distances.extend([[image, orientation, euclidean]])    
+                # distances.pop()
+                # distances.extend([[image, orientation, euclidean]])    
+                distances[-1] = [image, orientation, euclidean]
                 distances = sorted(distances, key=itemgetter(2))
                 max_k = distances[-1][2]
         #         print "interim", distances
