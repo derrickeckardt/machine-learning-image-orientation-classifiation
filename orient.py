@@ -119,8 +119,8 @@ def nearest_test(train_file, test_file, k):
                 # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
                 # euclidean += euclid_dict[train_dict[j]-test_dict[j]]
                 # euclidean += euclid_dict[train[j]-test[j]]
-                euclidean += (train[j]-test[j]) **2   
-                euclidean += (train[j]-test[j]) *  (train[j]-test[j])
+                # euclidean += (train[j]-test[j]) **2   
+                # euclidean += (train[j]-test[j]) *  (train[j]-test[j])
                 euclidean += pow(train[j]-test[j], 2)
                 # euclidean += euclid_dict[str(train[j])+"-"+str(test[j])]
                 if euclidean > max_k:
