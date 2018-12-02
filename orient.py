@@ -173,42 +173,19 @@ elif traintest == "test":
 
     if model == "nearest":
         print "Classifying via k-Nearest Neighbors algorithm."
-        # for k in [1,3,5,7,9,11,13,15,17,19,21,23,25,30,35,40,45,50,60,70,80,90,100]:
-        # knn_file = open("knn-optimal.txt","w+")
-        # for k in range(1,2):
-            # print "k = ",k
-        k=4000
-        k_range = range(1,k+1)
+        k = 11 # based on results of code to find optimal range for k
         results = nearest_test(model_file, input_file, k)
-            # correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
-        #     total_images = len(results)
-        #     print "k =",k,"  ",correct/total_images
-        #     knn_file.write(str(k)+" "+str(correct)+" "+str(total_images))
-        # knn_file.close
-            # output(results)
-        # profile.run("nearest_test(model_file,input_file, 45)")
+
+        # Testing code to find slowest part of code
+        profile.run("nearest_test(model_file,input_file, 11)")
     else:
         print "Unsupported Machine Learning Model."
 
-    total_images = len(results)
-    output_file = open("knn-values.txt","w+")
-    max_K_value = 0
-    max_K_values = []
-    for K in k_range:
-        correct = 0
-        for image, votes, actual in results:
-            vote_guess = Counter([vote[1] for vote in votes[:K]]).most_common(1)[0][0]
-            correct += 1 if vote_guess == actual else 0
-        K_percent = correct/float(total_images)
-        if K_percent >= max_K_value:
-            max_K_values.append([K, K_percent])
-            max_K_value = K_percent
-        output_file.write(str(K) + " " + str(correct) +" "+ str(total_images)+" "+str(round(K_percent,5))+"\n")  #add input image number, # add guess
-    output_file.close
-    print "Max K Value of "+str(max_K_values[-1][0])+" yielded a precentage of "+str(round(max_K_values[-1][1],5))
-    print "Various kNN cases Individual test cases outputted to 'knn-values.txt'."
+    # Testing code to find optimal k value
+    multiple_k(results)
 
-    # output(results)
+    # Output results
+    output(results)
     
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
@@ -237,3 +214,22 @@ def output_model():
     training_file.write("Something") # Add model information
     training_file.close
 
+
+def multiple_k(results):
+    total_images = len(results)
+    output_file = open("knn-values.txt","w+")
+    max_K_value = 0
+    max_K_values = []
+    k_range = range(1,k+1)
+    for K in k_range:
+        correct = 0
+        for image, votes, actual in results:
+            vote_guess = Counter([vote[1] for vote in votes[:K]]).most_common(1)[0][0]
+            correct += 1 if vote_guess == actual else 0
+        K_percent = correct/float(total_images)
+        if K_percent >= max_K_value:
+            max_K_values.append([K, K_percent])
+            max_K_value = K_percent
+        output_file.write(str(K) + " " + str(correct) +" "+ str(total_images)+" "+str(round(K_percent,5))+"\n")  #add input image number, # add guess
+    output_file.close
+    print "Various kNN cases Individual test cases outputted to 'knn-values.txt'."
