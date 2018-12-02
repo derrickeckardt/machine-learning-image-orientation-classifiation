@@ -119,7 +119,11 @@ def nearest_test(train_file, test_file, k):
                 # euclidean += (train[j]-test[j])**2  # Don't need to find square root, since relative, save the operation
                 euclidean += euclid_dict[train[j]-test[j]]
                 # euclidean += euclid_dict[train_dict[j]-test_dict[j]]
-                # interim = train[j]-test[j]
+                # euclidean += train[j]-test[j] if train[j] > test[j] else test[j] - train[j]
+                # euclidean += abs(sum([train[j]-test[j]]))
+                # euclidean += max([train[j]-test[j],test[j] - train[j]])
+                # euclidean += sum((train[j]-test[j])
+                # euclidean += abs(train[j]-test[j])
                 # euclidean += interim** 2 #interim
                 # euclidean += (train[j]-test[j]) **2   
                 # euclidean += (train[j]-test[j]) *  (train[j]-test[j])
@@ -141,7 +145,7 @@ def nearest_test(train_file, test_file, k):
         #         print "interim", distances
         # print "final  ",distances
         vote_guess = Counter([vote[1] for vote in distances]).most_common(1)[0][0]
-        results.extend([[test_image, vote_guess, actual_orientation]])
+        results.extend([[test_image, distances, actual_orientation]])  #vote_guess
     # back-up copy
     # for test_image, actual_orientation, test in test_images:
     #     distances = []
@@ -173,7 +177,8 @@ elif traintest == "test":
         # knn_file = open("knn-optimal.txt","w+")
         # for k in range(1,2):
             # print "k = ",k
-        k=11
+        k=4000
+        k_range = range(1,k+1)
         results = nearest_test(model_file, input_file, k)
             # correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
         #     total_images = len(results)
@@ -185,7 +190,23 @@ elif traintest == "test":
     else:
         print "Unsupported Machine Learning Model."
 
-    output(results)
+    total_images = len(results)
+    output_file = open("knn-values.txt","w+")
+    max_K_value = 0
+    max_K_values = []
+    for K in k_range:
+        correct = 0
+        for image, votes, actual in results:
+            vote_guess = Counter([vote[1] for vote in votes[:K]]).most_common(1)[0][0]
+            correct += 1 if vote_guess == actual else 0
+        K_percent = correct/float(total_images)
+        if K_percent >= max_K_value:
+            max_K_values.append([K, K_percent])
+        output_file.write(str(K) + " " + str(correct) +" "+ str(total_images)+" "+str(round(K_percent,5))+"\n")  #add input image number, # add guess
+    output_file.close
+    print "Various kNN cases Individual test cases outputted to 'knn-values.txt'."
+
+    # output(results)
     
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
