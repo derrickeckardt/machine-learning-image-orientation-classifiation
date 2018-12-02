@@ -202,8 +202,10 @@ elif traintest == "test":
         K_percent = correct/float(total_images)
         if K_percent >= max_K_value:
             max_K_values.append([K, K_percent])
+            max_K_value = K_percent
         output_file.write(str(K) + " " + str(correct) +" "+ str(total_images)+" "+str(round(K_percent,5))+"\n")  #add input image number, # add guess
     output_file.close
+    print "Max K Value of "+str(max_K_values[-1][0])+" yielded a precentage of "+str(round(max_K_values[-1][1],5))
     print "Various kNN cases Individual test cases outputted to 'knn-values.txt'."
 
     # output(results)
