@@ -1,0 +1,11 @@
+1. ask about:
+    from operator import itemgetter - OK
+    from collections import Counter - OK
+2. Report - comments or actual report or markdown?
+3. Comment on difficulty finding euclidean distance for time
+4. leave in testing code commented out?
+5. handling continous data for decision trees
+6. what is this pluratiy value?
+
+Answered
+7. pickle for outputting dictionary - OK
