@@ -94,8 +94,25 @@ def entropy(training_images,eval_column):
     total_items = float(sum(counts.values()))
     entropy = sum([(-counts[each]/total_items)*np.log2(counts[each]/total_items) for each in items])
     return entropy
-    
 
+def create_decision_tree(images, features, class_col):
+    decision_tree = {}
+    entropies = [[feature, entropy(filtered_images,feature)] for feature in features ]
+    max_ent = sorted(entropies, key=itemgetter(1), reverse=True)[0]
+    # make root
+        # recursively call it
+        # reduce feature set
+        # determine how far down to go
+        
+    
+    print max_ent
+    print sorted(entropies, key=itemgetter(1), reverse=True)[-1]
+    return decision_tree
+
+def create_forest():
+    pass
+
+    
 # For all take a list of list with inputs in form of [image, guess_orientation, actual_orientation]
 def output(results):
     correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
@@ -203,16 +220,7 @@ if traintest == "train":
         training_images, features = import_for_trees(input_file)
         print "Running filters to make features friendlier."
         filtered_images = dt_filters(training_images)
-        entropies = [[feature, entropy(filtered_images,feature)] for feature in features ]
-        max_ent = sorted(entropies, key=itemgetter(1), reverse=True)[0]
-        # make root
-            # recursively call it
-            # reduce feature set
-            # determine how far down to go
-            
-        
-        print max_ent
-        print sorted(entropies, key=itemgetter(1), reverse=True)[-1]
+        create_decision_tree(filtered_images, features,'orientation')
     else:
         print "Unsupported Machine Learning Model."
 
@@ -240,8 +248,6 @@ else:
 #### To Do    
 def adaboost():
     pass
-
-
 
 def forest():
     pass
