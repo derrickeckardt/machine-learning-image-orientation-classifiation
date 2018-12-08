@@ -95,7 +95,20 @@ def entropy(training_images,eval_column):
     entropy = sum([(-counts[each]/total_items)*np.log2(counts[each]/total_items) for each in items])
     return entropy
 
-def create_decision_tree(images, features, class_col):
+def create_decision_tree(images, parent_images, features, class_col, parent_node):
+    
+    # Based on Figure 18.5 in Course Text
+    # If no images, then use the most common value of the parent node
+    if len(images) == 0:
+        return plurality_value(parent_images)
+    # If they are all the same classification, return the classification
+    elif all_same_class(examples):
+        return DecisionLeaf(examples[0][target])
+    # If no more features left, then return most common value of the examples
+    elif len(features) == 0:
+        return plurality_value(images)
+            
+            
     decision_tree = {}
     entropies = [[feature, entropy(filtered_images,feature)] for feature in features ]
     max_ent = sorted(entropies, key=itemgetter(1), reverse=True)[0]
@@ -106,7 +119,6 @@ def create_decision_tree(images, features, class_col):
         
     
     print max_ent
-    print sorted(entropies, key=itemgetter(1), reverse=True)[-1]
     return decision_tree
 
 def create_forest():
@@ -220,7 +232,7 @@ if traintest == "train":
         training_images, features = import_for_trees(input_file)
         print "Running filters to make features friendlier."
         filtered_images = dt_filters(training_images)
-        create_decision_tree(filtered_images, features,'orientation')
+        create_decision_tree(filtered_images, filtered_images, features,'orientation','none')
     else:
         print "Unsupported Machine Learning Model."
 
