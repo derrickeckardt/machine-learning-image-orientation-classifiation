@@ -1,5 +1,8 @@
 Train
 
+time ./orient.py train test-data-micro.txt model_file.txt forest
+
+
 time ./orient.py train train-data.txt model_file.txt nearest
 time ./orient.py train train-data.txt model_file.txt adaboost
 time ./orient.py train train-data.txt model_file.txt forest

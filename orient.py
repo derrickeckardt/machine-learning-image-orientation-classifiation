@@ -33,11 +33,13 @@ import sys
 from operator import itemgetter
 from collections import Counter, deque
 import profile
+from pprint import pprint
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import euclidean as euclid
 from math import pow
 from numpy import square
+import random
 
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
@@ -61,8 +63,8 @@ def import_for_trees(input_file):
     training_images = pd.read_csv(input_file, names=features, sep=" ")
     
     # drop filename column
-    training_images['filename'].drop
-    
+    # training_images.drop(['filename'], axis = 1)
+
     # features doesn't need to track filename or orientation
     features = features[2:]
 
@@ -71,7 +73,8 @@ def import_for_trees(input_file):
 def dt_filters(training_images):
     
     # Make a copy
-    filtered_images = training_images
+    filtered_images = training_images * 1
+
 
     # Various filters I have used
     # Convert them to dark or light (0 or 1)
@@ -84,42 +87,60 @@ def dt_filters(training_images):
 
     # apply filters
     for column in features:
-        filtered_images[column] = filtered_images[column].apply(quarters)
+        filtered_images[column] = filtered_images[column].apply(halves)
 
     return filtered_images
 
-def entropy(training_images,eval_column):
-    items = np.unique(filtered_images[eval_column])
-    counts = Counter(filtered_images[eval_column])
+def entropy(images,eval_column):
+    items = np.unique(images[eval_column])
+    counts = Counter(images[eval_column])
     total_items = float(sum(counts.values()))
     entropy = sum([(-counts[each]/total_items)*np.log2(counts[each]/total_items) for each in items])
-    return entropy
+    return entropy, list(items)
 
-def create_decision_tree(images, parent_images, features, class_col, parent_node):
+def plurality_value(images,class_col):
+    return Counter(images[class_col]).most_common(1)[0][0]
+
+def create_decision_tree(images, parent_images, features, class_col):
     
     # Based on Figure 18.5 in Course Text
     # If no images, then use the most common value of the parent node
     if len(images) == 0:
-        return plurality_value(parent_images)
+        return plurality_value(parent_images, class_col)
     # If they are all the same classification, return the classification
-    elif all_same_class(examples):
-        return DecisionLeaf(examples[0][target])
+    elif len(np.unique(images[class_col])) <= 1:
+        return np.unique(images[class_col])[0]
     # If no more features left, then return most common value of the examples
     elif len(features) == 0:
-        return plurality_value(images)
+        return plurality_value(images, class_col)
+    else:
+        # O, Decision Tree! O, Decision Tree!    
+        entropies = [[feature] + list(entropy(images,feature)) for feature in features]
+        # print entropies
+        max_feature, max_entropy_value, max_entropy_items = sorted(entropies, key=itemgetter(1), reverse=True)[0]
+        decision_tree = {max_feature: {}}
+
+        # take max_feature out of my feature set
+        features = [feature for feature in features if feature != max_feature]
+
+        # Iterate over each unique value 
+        for item in max_entropy_items:
+            
+            # Get the data-subset
+            item_images = images.where(images[max_feature] == item).dropna()
+            # print "item_images"
+            # print item_images.head()
+            
+            # Recursively call this algorithm
+            sub_decision_tree = create_decision_tree(item_images, images, features, 'orientation')
+
+            # Add branch to tree:
+            decision_tree[max_feature][item] = sub_decision_tree
             
             
-    decision_tree = {}
-    entropies = [[feature, entropy(filtered_images,feature)] for feature in features ]
-    max_ent = sorted(entropies, key=itemgetter(1), reverse=True)[0]
-    # make root
-        # recursively call it
-        # reduce feature set
-        # determine how far down to go
-        
-    
-    print max_ent
-    return decision_tree
+        # Tree after certain point?
+        # Or not?
+        return decision_tree
 
 def create_forest():
     pass
@@ -232,7 +253,13 @@ if traintest == "train":
         training_images, features = import_for_trees(input_file)
         print "Running filters to make features friendlier."
         filtered_images = dt_filters(training_images)
-        create_decision_tree(filtered_images, filtered_images, features,'orientation','none')
+        # randomly selecting five features to be used, since there are 192
+
+        # did not want too deep a tree.  Since making a forest, this will fix itself
+        # also makes it easier to use for decision stumps
+        sub_features = random.sample(features, 10)
+
+        pprint(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation'))
     else:
         print "Unsupported Machine Learning Model."
 
