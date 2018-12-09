@@ -40,6 +40,7 @@ from scipy.spatial.distance import euclidean as euclid
 from math import pow
 from numpy import square
 import random
+import pickle
 
 # Import command line inputs
 traintest, input_file, model_file, model = sys.argv[1:]
@@ -87,7 +88,7 @@ def dt_filters(training_images):
 
     # apply filters
     for column in features:
-        filtered_images[column] = filtered_images[column].apply(halves)
+        filtered_images[column] = filtered_images[column].apply(quarters)
 
     return filtered_images
 
@@ -101,17 +102,17 @@ def entropy(images,eval_column):
 def plurality_value(images,class_col):
     return Counter(images[class_col]).most_common(1)[0][0]
 
-def create_decision_tree(images, parent_images, features, class_col):
-    
+def create_decision_tree(images, parent_images, features, class_col, current_depth, depth):
     # Based on Figure 18.5 in Course Text
     # If no images, then use the most common value of the parent node
+    # Or, if at the deepest level
     if len(images) == 0:
         return plurality_value(parent_images, class_col)
     # If they are all the same classification, return the classification
     elif len(np.unique(images[class_col])) <= 1:
         return np.unique(images[class_col])[0]
     # If no more features left, then return most common value of the examples
-    elif len(features) == 0:
+    elif len(features) == 0 or current_depth == depth:
         return plurality_value(images, class_col)
     else:
         # O, Decision Tree! O, Decision Tree!    
@@ -128,24 +129,32 @@ def create_decision_tree(images, parent_images, features, class_col):
             
             # Get the data-subset
             item_images = images.where(images[max_feature] == item).dropna()
-            # print "item_images"
-            # print item_images.head()
-            
+
             # Recursively call this algorithm
-            sub_decision_tree = create_decision_tree(item_images, images, features, 'orientation')
+            sub_decision_tree = create_decision_tree(item_images, images, features, 'orientation', current_depth+1,depth)
 
             # Add branch to tree:
             decision_tree[max_feature][item] = sub_decision_tree
             
-            
-        # Tree after certain point?
-        # Or not?
         return decision_tree
-
+        
+def predict_decision_tree(learned_decision_tree, image):
+    # print "image", image
+    for key in learned_decision_tree.keys():
+        
+        # if [image.iloc[0][key]] in learned_decision_tree[key][image.iloc[0][key]].values():
+        value = learned_decision_tree[key].get(image.iloc[0][key],0.0)
+        if isinstance(value, dict):
+            return predict_decision_tree(value,image)
+        else:
+            return value
+        # else:
+        #     # in the event a test_image has value not in the model
+        #     return 0.0
+     
 def create_forest():
     pass
 
-    
 # For all take a list of list with inputs in form of [image, guess_orientation, actual_orientation]
 def output(results):
     correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
@@ -254,12 +263,35 @@ if traintest == "train":
         print "Running filters to make features friendlier."
         filtered_images = dt_filters(training_images)
         # randomly selecting five features to be used, since there are 192
-
         # did not want too deep a tree.  Since making a forest, this will fix itself
         # also makes it easier to use for decision stumps
-        sub_features = random.sample(features, 10)
+        # sub_features = features*1  # Testing only
+        
+        # Select subset of features
+        sub_features = random.sample(features,20)
+        # Make a Decision Tree
+        print "Learning Decision Tree"
+        decision_tree_old = create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,10)
+        # pprint(decision_tree)
 
-        pprint(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation'))
+        # Outputting File
+        print "Outputting Model via Pickle"
+        pickle.dump(decision_tree_old, open(model_file, "wb" ))
+        print "Loading Model via Pickle"
+        decision_tree = pickle.load(open(model_file, "rb" ))
+
+        # Testing Decision Tree
+        print "Testing Decision Tree"
+        testing_images, test_features = import_for_trees("test-data.txt")
+        testing_images = dt_filters(testing_images)
+        image_range = range(len(testing_images))
+        correct = 0
+        for i in image_range:
+            image = testing_images[i:i+1]
+            # print predict_decision_tree(decision_tree, image) 
+            correct += 1 if predict_decision_tree(decision_tree, image) == image.iloc[0]['orientation'] else 0
+        print correct," ", correct/float(len(testing_images))
+        
     else:
         print "Unsupported Machine Learning Model."
 
