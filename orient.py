@@ -319,9 +319,9 @@ def adaboost_train():
             for i in range(total_items):
                 # not o matches
                 if interim_results[i][1] in other_orientations and interim_results[i][2] in other_orientations:
-                    pass #print "xxxxxx",
+                    pass 
                 elif interim_results[i][1] == orientations[o] and interim_results[i][2] == orientations[o]:
-                    pass #print "oooooo",
+                    pass
                 else:
                     error += weights[o][i] 
             print "error",error
@@ -340,13 +340,30 @@ def adaboost_train():
 
     return classifiers_weighted
 
-def adaboost_test(classifiers):
+def adaboost_test(classifiers, input_file):
+    testing_images, test_features = import_for_trees(input_file)
+    testing_images = dt_filters(testing_images, test_features)
+    image_range = range(len(testing_images))
     results = []
-    for classifier, weights in classifiers:
-        print classifier
-        print weights
-        # predict_decision_tree(learned_decision_tree, image)
-    
+    weighted_scores ={}
+    orientations = [0, 90.0, 180.0, 270.0]
+    orientations_range = range(len(orientations))
+    for i in image_range:
+        for o in orientations:
+            weighted_scores[o] = 0
+        image = testing_images[i:i+1]
+        for classifier, weights in classifiers:
+            class_guess = predict_decision_tree(classifier,image)
+            for j in orientations_range:
+                other_o = [y for y in orientations if y != orientations[j]]
+                if class_guess not in other_o:
+                    weighted_scores[orientations[j]] += weights[j] * 1.0
+                else:
+                    weighted_scores[orientations[j]] += weights[j] * -1.0
+        print weighted_scores, max(weighted_scores.iteritems(), key=itemgetter(1))
+        ada_guess = max(weighted_scores.iteritems(), key=itemgetter(1))[0]
+        results.extend([[image.iloc[0]['filename'], ada_guess,image.iloc[0]['orientation'] ]])
+            
     return results
 
 if traintest == "train":
@@ -378,7 +395,7 @@ elif traintest == "test":
     elif model == "adaboost":
         print "Classifying via Adaboost algorithm."
         classifiers = pickle_in(model_file)
-        results = adaboost_test(classifiers)
+        results = adaboost_test(classifiers,input_file)
     else:
         print "Unsupported Machine Learning Model."
 
