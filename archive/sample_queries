@@ -1,0 +1,19 @@
+Train
+
+time ./orient.py train train-data.txt nearest_model.txt nearest
+time ./orient.py train train-data.txt adaboost_model.txt adaboost
+time ./orient.py train train-data.txt forest_model.txt forest
+time ./orient.py train train-data.txt best_model.txt best
+
+Test
+
+time ./orient.py test test-data.txt nearest_model.txt nearest
+time ./orient.py test test-data.txt adaboost_model.txt adaboost
+time ./orient.py test test-data.txt forest_model.txt forest
+time ./orient.py test test-data.txt best_model.txt best
+
+Output Files will be
+output_nearest.txt
+output_adaboost.txt
+output_forest.txt
+output_best.txt

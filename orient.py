@@ -71,7 +71,7 @@ def import_for_trees(input_file):
 
     return training_images, features
 
-def dt_filters(training_images):
+def dt_filters(training_images, features):
     
     # Make a copy
     filtered_images = training_images * 1
@@ -152,8 +152,45 @@ def predict_decision_tree(learned_decision_tree, image):
         #     # in the event a test_image has value not in the model
         #     return 0.0
      
-def create_forest():
-    pass
+def forest_train(input_file,size_of_forest):
+    print "Training via Forest algorithm."
+    print "Loading images from '"+input_file+"'."
+    training_images, features = import_for_trees(input_file)
+    print "Running filters to make features friendlier."
+    filtered_images = dt_filters(training_images, features)
+
+    # Building my forest
+    print "Growing Forest of Trees"
+    forest_of_trees = []
+    for tree in range(0,size_of_forest):
+        # 50 random features, so no two trees are alike
+        print "Growing tree number "+str(tree)+"."
+        sub_features = random.sample(features,20)
+        forest_of_trees.append(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,6))
+
+    # Outputting File
+    print "Outputting Model via Pickle to '"+model+"_model.txt'."
+    pickle.dump(forest_of_trees, open(model_file, "wb" ))
+
+def forest_test(model_file,input_file):
+    print "Loading Model via Pickle"
+    forest_of_trees = pickle.load(open(model_file, "rb" ))
+
+    # Testing Forest
+    print "Testing Forest of Trees"
+    testing_images, test_features = import_for_trees(input_file)
+    testing_images = dt_filters(testing_images, test_features)
+    image_range = range(len(testing_images))
+    results = []
+    for i in image_range:
+        image_votes =[]
+        for decision_tree in forest_of_trees:    
+            image = testing_images[i:i+1]
+            image_votes.extend([predict_decision_tree(decision_tree, image)])
+        forest_guess = Counter(image_votes).most_common(1)[0][0]
+        results.extend([[image.iloc[0]['filename'], forest_guess,image.iloc[0]['orientation'] ]])
+
+    return results
 
 # For all take a list of list with inputs in form of [image, guess_orientation, actual_orientation]
 def output(results):
@@ -166,11 +203,11 @@ def output(results):
     print 'Total Accuracy:        %.3f%%' % (correct/float(total_images)*100)
 
     # Print to file
-    output_file = open("output.txt","w+")
+    output_file = open("output_"+model+".txt","w+")
     for image, guess, actual in results:
         output_file.write(traintest + "/" + str(image) +" "+ str(guess)+"\n")  #add input image number, # add guess
     output_file.close
-    print "Individual test cases outputted to 'output.txt'."
+    print "Individual test cases outputted to 'output_"+model+".txt'."
         
 # Use within nearest() - Not currently used, as found it slightly faster to use dictionaries
 def euclidean(train_features,test_features):
@@ -180,6 +217,7 @@ def euclidean(train_features,test_features):
     # return sum([(train-test)**2 for train, test in zip(train_features, test_features)])**(0.5)
 
 def nearest_train():
+    print "Training via k-Nearest Neighbors algorithm."
     # Only copy the file over, since kNN is dependent on the test data
     train_output = open(model_file,"w+")
     with open(input_file, 'r') as file:
@@ -189,7 +227,7 @@ def nearest_train():
     print "k-Nearest Neighbors Model outputted to '"+model_file+"'."
     
 def nearest_test(train_file, test_file, k):
-    print "Loading training images from '"+train_file+"'."; train_images = import_images(train_file)
+    print "Loading training images from the model in '"+train_file+"'."; train_images = import_images(train_file)
     print "Loading test images from '"+test_file+"'."; test_images = import_images(test_file)
     print "Classifying %d images. Estimated runtime is %d minutes and %.0f seconds." % (len(test_images) , (len(test_images) / 150), ((len(test_images) % 150) * (60.0/150.0)))
     feature_range, results = range(len(train_images[0][2])), []
@@ -254,44 +292,11 @@ def nearest_test(train_file, test_file, k):
 if traintest == "train":
     # Import train file
     if model == "nearest":
-        print "Training via k-Nearest Neighbors algorithm."
         nearest_train()
     elif model =="forest":
-        print "Training via Forest algorithm."
-        print "Loading images from '"+input_file+"'."
-        training_images, features = import_for_trees(input_file)
-        print "Running filters to make features friendlier."
-        filtered_images = dt_filters(training_images)
-        # randomly selecting five features to be used, since there are 192
-        # did not want too deep a tree.  Since making a forest, this will fix itself
-        # also makes it easier to use for decision stumps
-        # sub_features = features*1  # Testing only
-        
-        # Select subset of features
-        sub_features = random.sample(features,20)
-        # Make a Decision Tree
-        print "Learning Decision Tree"
-        decision_tree_old = create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,10)
-        # pprint(decision_tree)
-
-        # Outputting File
-        print "Outputting Model via Pickle"
-        pickle.dump(decision_tree_old, open(model_file, "wb" ))
-        print "Loading Model via Pickle"
-        decision_tree = pickle.load(open(model_file, "rb" ))
-
-        # Testing Decision Tree
-        print "Testing Decision Tree"
-        testing_images, test_features = import_for_trees("test-data.txt")
-        testing_images = dt_filters(testing_images)
-        image_range = range(len(testing_images))
-        correct = 0
-        for i in image_range:
-            image = testing_images[i:i+1]
-            # print predict_decision_tree(decision_tree, image) 
-            correct += 1 if predict_decision_tree(decision_tree, image) == image.iloc[0]['orientation'] else 0
-        print correct," ", correct/float(len(testing_images))
-        
+        forest_train(input_file,11)
+    elif model =="adaboost":
+        pass
     else:
         print "Unsupported Machine Learning Model."
 
@@ -304,11 +309,16 @@ elif traintest == "test":
 
         # Testing code to find slowest part of code
         # profile.run("nearest_test(model_file,input_file, 11)")
+    elif model == "forest":
+        print "Classifying via Forest algorithm."
+        results = forest_test(model_file,input_file)
+    elif model == "adaboost":
+        pass
     else:
         print "Unsupported Machine Learning Model."
 
-    # Testing code to find optimal k value
-    multiple_k(results)
+    # # Testing code to find optimal k value
+    # multiple_k(results)
 
     # Output results
     output(results)
