@@ -166,7 +166,7 @@ def forest_train(input_file,size_of_forest, features_to_sample):
         # 50 random features, so no two trees are alike
         print "Growing tree number "+str(tree)+"."
         sub_features = random.sample(features,features_to_sample)
-        forest_of_trees.append(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,10))
+        forest_of_trees.append(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,3))
 
     return forest_of_trees
 
@@ -190,7 +190,7 @@ def forest_test(forest_of_trees,input_file):
 def pickle_out(item):
     # Outputting File
     print "Outputting Model via Pickle to '"+model_file+"'."
-    pickle.dump(item, open(model_file, "wb" ))
+    pickle.dump(item, open(model_file, "wb" ), protocol=pickle.HIGHEST_PROTOCOL)
 
 def pickle_in(model_file):
     print "Loading Model via Pickle"
@@ -300,10 +300,9 @@ def nearest_test(train_file, test_file, k):
     
 def adaboost_train():
 
-
     orientations = [0.0, 90.0, 180.0, 270.0]
     classifiers_weighted =[]
-    for k in range(2):
+    for k in range(10):
         classifier = forest_train(input_file,1,1) # Decision stump instead of forest
         interim_results = forest_test(classifier,input_file)
         correct, total_items = count_correct(interim_results)
@@ -316,32 +315,46 @@ def adaboost_train():
             print o, weights[o][0:5]
             # calculate error
             error = 0
+            other_orientations = [y for y in orientations if y != orientations[o]]
             for i in range(total_items):
-                if interim_results[i][1] != interim_results[i][2]:
+                # not o matches
+                if interim_results[i][1] in other_orientations and interim_results[i][2] in other_orientations:
+                    pass #print "xxxxxx",
+                elif interim_results[i][1] == orientations[o] and interim_results[i][2] == orientations[o]:
+                    pass #print "oooooo",
+                else:
                     error += weights[o][i] 
             print "error",error
             f = error / (1-error)
             for i in range(total_items):
                 if interim_results[i][1] != interim_results[i][2]:
                     weights[o][i] = weights[o][i]*f
-            print "new unnormalized weights", weights[o][0:5]
-            print "sum",sum(weights[o])
+            # print "new unnormalized weights", weights[o][0:5]
+            # print "sum",sum(weights[o])
             # normalize
             weights[o] = [weight/sum(weights[o]) for weight in weights[o]]
-            print "new normalized weights", weights[o][0:5]
-            print "sum",sum(weights[o])
+            # print "new normalized weights", weights[o][0:5]
+            # print "sum",sum(weights[o])
             classifier_weights.extend([log((1-error)/error)])
-        classifiers_weighted.extend([classifier,classifier_weights])
+        classifiers_weighted.extend([[classifier[0],classifier_weights]])
 
-    pprint(classifiers_weighted)
     return classifiers_weighted
+
+def adaboost_test(classifiers):
+    results = []
+    for classifier, weights in classifiers:
+        print classifier
+        print weights
+        # predict_decision_tree(learned_decision_tree, image)
+    
+    return results
 
 if traintest == "train":
     # Import train file
     if model == "nearest":
         nearest_train()
     elif model =="forest":
-        forest = forest_train(input_file,11,20)
+        forest = forest_train(input_file,50,20)
         pickle_out(forest)
     elif model =="adaboost":
         classifiers = adaboost_train()
@@ -360,9 +373,12 @@ elif traintest == "test":
         # profile.run("nearest_test(model_file,input_file, 11)")
     elif model == "forest":
         print "Classifying via Forest algorithm."
-        results = forest_test(pickle_in(model_file),input_file)
+        forest = pickle_in(model_file)
+        results = forest_test(forest,input_file)
     elif model == "adaboost":
-        pass
+        print "Classifying via Adaboost algorithm."
+        classifiers = pickle_in(model_file)
+        results = adaboost_test(classifiers)
     else:
         print "Unsupported Machine Learning Model."
 
