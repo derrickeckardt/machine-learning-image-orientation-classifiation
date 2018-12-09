@@ -31,13 +31,13 @@
 
 import sys
 from operator import itemgetter
-from collections import Counter, deque
+from collections import Counter
 import profile
 from pprint import pprint
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import euclidean as euclid
-from math import pow
+from math import pow, log
 from numpy import square
 import random
 import pickle
@@ -152,7 +152,7 @@ def predict_decision_tree(learned_decision_tree, image):
         #     # in the event a test_image has value not in the model
         #     return 0.0
      
-def forest_train(input_file,size_of_forest):
+def forest_train(input_file,size_of_forest, features_to_sample):
     print "Training via Forest algorithm."
     print "Loading images from '"+input_file+"'."
     training_images, features = import_for_trees(input_file)
@@ -165,17 +165,12 @@ def forest_train(input_file,size_of_forest):
     for tree in range(0,size_of_forest):
         # 50 random features, so no two trees are alike
         print "Growing tree number "+str(tree)+"."
-        sub_features = random.sample(features,20)
-        forest_of_trees.append(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,6))
+        sub_features = random.sample(features,features_to_sample)
+        forest_of_trees.append(create_decision_tree(filtered_images, filtered_images, sub_features,'orientation',0,10))
 
-    # Outputting File
-    print "Outputting Model via Pickle to '"+model+"_model.txt'."
-    pickle.dump(forest_of_trees, open(model_file, "wb" ))
+    return forest_of_trees
 
-def forest_test(model_file,input_file):
-    print "Loading Model via Pickle"
-    forest_of_trees = pickle.load(open(model_file, "rb" ))
-
+def forest_test(forest_of_trees,input_file):
     # Testing Forest
     print "Testing Forest of Trees"
     testing_images, test_features = import_for_trees(input_file)
@@ -192,10 +187,24 @@ def forest_test(model_file,input_file):
 
     return results
 
-# For all take a list of list with inputs in form of [image, guess_orientation, actual_orientation]
-def output(results):
+def pickle_out(item):
+    # Outputting File
+    print "Outputting Model via Pickle to '"+model_file+"'."
+    pickle.dump(item, open(model_file, "wb" ))
+
+def pickle_in(model_file):
+    print "Loading Model via Pickle"
+    return pickle.load(open(model_file, "rb" ))
+
+def count_correct(results):
     correct = sum([1 if guess == actual else 0 for image, guess, actual in results])
     total_images = len(results)
+    return correct, total_images
+
+def output(results):
+    correct, total_images = count_correct(results)
+    # For all take a list of list with inputs in form of
+    # [image, guess_orientation, actual_orientation]
     # Print to screen
     print "Utilizing the "+model+" model, the results are as follows:"
     print 'Photos Correct:        '+str(correct)
@@ -209,8 +218,8 @@ def output(results):
     output_file.close
     print "Individual test cases outputted to 'output_"+model+".txt'."
         
-# Use within nearest() - Not currently used, as found it slightly faster to use dictionaries
 def euclidean(train_features,test_features):
+    # Use within nearest() - Not currently used, as dictionaries are faster
     feature_range = range(len(train_features))
     return sum([(train_features[i]-test_features[i])**2 for i in feature_range])
     # return sum([(train_features[i]-test_features[i])**2 for i in range(len(train_features)))])
@@ -289,14 +298,54 @@ def nearest_test(train_file, test_file, k):
 
     return results
     
+def adaboost_train():
+
+
+    orientations = [0.0, 90.0, 180.0, 270.0]
+    classifiers_weighted =[]
+    for k in range(2):
+        classifier = forest_train(input_file,1,1) # Decision stump instead of forest
+        interim_results = forest_test(classifier,input_file)
+        correct, total_items = count_correct(interim_results)
+        if k == 0:
+            #initiate weights
+            weights = [[1.0/float(total_items)]*total_items for j in range(len(orientations))]
+            # print "starter weight sum",[sum(weights[i]) for i in range(len(orientations))]
+        classifier_weights = []
+        for o in range(len(orientations)):
+            print o, weights[o][0:5]
+            # calculate error
+            error = 0
+            for i in range(total_items):
+                if interim_results[i][1] != interim_results[i][2]:
+                    error += weights[o][i] 
+            print "error",error
+            f = error / (1-error)
+            for i in range(total_items):
+                if interim_results[i][1] != interim_results[i][2]:
+                    weights[o][i] = weights[o][i]*f
+            print "new unnormalized weights", weights[o][0:5]
+            print "sum",sum(weights[o])
+            # normalize
+            weights[o] = [weight/sum(weights[o]) for weight in weights[o]]
+            print "new normalized weights", weights[o][0:5]
+            print "sum",sum(weights[o])
+            classifier_weights.extend([log((1-error)/error)])
+        classifiers_weighted.extend([classifier,classifier_weights])
+
+    pprint(classifiers_weighted)
+    return classifiers_weighted
+
 if traintest == "train":
     # Import train file
     if model == "nearest":
         nearest_train()
     elif model =="forest":
-        forest_train(input_file,11)
+        forest = forest_train(input_file,11,20)
+        pickle_out(forest)
     elif model =="adaboost":
-        pass
+        classifiers = adaboost_train()
+        pickle_out(classifiers)
     else:
         print "Unsupported Machine Learning Model."
 
@@ -311,7 +360,7 @@ elif traintest == "test":
         # profile.run("nearest_test(model_file,input_file, 11)")
     elif model == "forest":
         print "Classifying via Forest algorithm."
-        results = forest_test(model_file,input_file)
+        results = forest_test(pickle_in(model_file),input_file)
     elif model == "adaboost":
         pass
     else:
@@ -330,25 +379,11 @@ else:
 def adaboost():
     pass
 
-def forest():
-    pass
-
 def best():
     pass
 
-def other_ml_technique():
-    pass
-
-# For adaboost, forest
-def output_model():
-    # Train Mode Outputs for ada 
-    # Output model_file
-    training_file = open(model_file, "w+")
-    training_file.write("Something") # Add model information
-    training_file.close
-
-
 def multiple_k(results):
+    # This code was only used for testing to find optimal range for k
     total_images = len(results)
     output_file = open("knn-values.txt","w+")
     max_K_value = 0
