@@ -93,7 +93,7 @@ There are likely many ways that I could improve it.  If I were to do it over, I 
 
 ### Testing
 
-Once again, testing was the easiest part of this, since the training had already been done, and I had grown 500 stumps.  I suspect, that if I had gone even higher, I might have gotten even better performance.  However, there is likely diminising returns,.
+Once again, testing was the easiest part of this, since the training had already been done, and I had grown 500 stumps.  I suspect, that if I had gone even higher, I might have gotten even better performance.  However, there is likely diminising returns, and I suspect I would top out in low 60 percent for adaboost if I had more time to run additional versions.
 
 ## Best -- Ensemble Voting
 
@@ -109,9 +109,7 @@ The biggest trade-off I had to make here is that I decided not to use Adaboost. 
 
 Testing is straightforward, as I call the other three algorithms, record the results for all three, and then compute the most popular votes.  It does take a while to run, close to 10 minutes for all three, but that is given by the fact it has to go through all the other algorithms first.
 
-Overall, the performance on this was in fact the best, since it produced an accuracy of .  
-
-By using this ensemble method, it allows us to account for the shortcomings of one method to the other ones.
+By using this ensemble method, it allows us to account for the shortcomings of one method to the other ones.  However, I suspect, we need more methods, and consistent accuracies to get a noticeable result.
 
 ## Performance Accuraces and Variations
 
@@ -138,3 +136,5 @@ test/13962200152.jpg', which is visible here.
 ![Which way is the sky?](https://github.iu.edu/cs-b551-fa2018/derrick-a4/blob/master/13962200152.jpg "which way is the sky?")
 
 kNN said 180 degrees, while the decision forest said 90 degrees, and adaboost thought it was perfectly upright at 0 degrees.  With something like this, it very well could be any of those.  It almost isn't a fair fight.  Inspecting other images, it seemed that when there was something ambigous, then that introduced some level of concern.  In general, the majority of the time, all three classifiers found the same value, or two out of three.  They rarely disagreed.
+
+In case you are wondering, the correct orientation for that image is 180 degrees.  kNN for the win!
