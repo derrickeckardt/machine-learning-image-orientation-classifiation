@@ -314,8 +314,8 @@ def adaboost_train(input_file):
         sampled_images = training_images.sample(frac=0.01)
         sample_range = range(len(sampled_images))
         # create new feature from two other ones
-        # two_features = random.sample(handpicked_features,2)
-        two_features = random.sample(features,2)
+        two_features = random.sample(handpicked_features,2)
+        # two_features = random.sample(features,2)
         sampled_images[two_features[0]+"-"+two_features[1]] = sampled_images[two_features[0]] > sampled_images[two_features[1]]
         # testing_images['stump'] = testing_images[two_features[0]] > testing_images[two_features[1]]
         classifier = create_decision_tree(sampled_images, sampled_images,[two_features[0]+"-"+two_features[1]],'orientation',0,1)

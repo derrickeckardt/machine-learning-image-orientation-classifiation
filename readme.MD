@@ -47,15 +47,47 @@ The kNN requires almost no training, since the prediciton is based on the proper
 
 ### Testing
 
+To calculate this, for the 192 features, I calculated the Euclidean distance of each feature in the training set to the test image.
+
+I spent some effort to finding the optimal k.  I was able to modify my code such that I could find out my accuracies for k from 1 to 4000.  Surprisingly, the value of k didn't matter all that much.  It varied from 70 to 72% from k=9 all the way up to 4000.  In effect, there was not that big a deal.  For this test set, I found that the maximum was technically at k=48. I found that any k below 400 got over 71%.  Below is a chart showing the different k values.  it's a rolling average of the next k values, so that the chart would be a little smoother:
+
+![alt text](https://github.iu.edu/cs-b551-fa2018/derrick-a4/blob/master/part1/Rolling_Percent_vs_k.png "How k Varies")
+
+As you cann see, there are a couple of regions where it seems to go up.  That's around k = 50, and k = 300 to 350.  
+
+In order to cut my run time for the testing, I had to use the python "profile" library to do so to find out what was using valuable resources.  This helped me see where I could easily save time.  It also helped me figure out what the most expensive operations where.  Surprisingly, it was the calculation of the square for the euclidean distance.  If you look at my code, you will see dozed of different ways that I attempted to calculate it.  The fastest way is what I implemented, where I actually created a dictionary of the squares of -256 through 256.
+
+The main thing that cut my run time down was that I kept a running list of the closest images, and then as I added together the euclidean distances, once it exceeded the maximum value of my closest images, I stopped considering that point.  This allowed me to cut my run time to around 4 minutes.
+
+
+
 ## Decision Forest
+
+### Training
+
+The
+
+### Testing
 
 TBD
 
 ## Adaboost
 
+### Training
+
+The
+
+### Testing
+
 TBD
 
 ## Best -- Ensemble Voting
+
+### Training
+
+The
+
+### Testing
 
 TBD
 
