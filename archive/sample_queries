@@ -12,6 +12,9 @@ time ./orient.py test test-data.txt adaboost_model.txt adaboost
 time ./orient.py test test-data.txt forest_model.txt forest
 time ./orient.py test test-data.txt best_model.txt best
 
+time ./orient.py test test-data-micro.txt adaboost_model.txt adaboosttest
+
+
 Output Files will be
 output_nearest.txt
 output_adaboost.txt

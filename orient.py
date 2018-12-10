@@ -298,21 +298,36 @@ def nearest_test(train_file, test_file, k):
 
     return results
     
-def adaboost_train():
-
+def adaboost_train(input_file):
+    print "Training via Adaboost algorithm, using decision stumps"
+    training_images, features = import_for_trees(input_file)
+    # filtered_images = dt_filters(training_images, features)
+    testing_images, test_features = import_for_trees(input_file)
     orientations = [0.0, 90.0, 180.0, 270.0]
     classifiers_weighted =[]
-    for k in range(10):
-        classifier = forest_train(input_file,1,1) # Decision stump instead of forest
-        interim_results = forest_test(classifier,input_file)
+    for k in range(100):
+        print "Training stump "+str(k)
+        sampled_images = training_images.sample(frac=0.1)
+        sample_range = range(len(sampled_images))
+        # create new feature from two other ones
+        two_features = random.sample(features,2)
+        sampled_images[two_features[0]+"-"+two_features[1]] = sampled_images[two_features[0]] > sampled_images[two_features[1]]
+        # testing_images['stump'] = testing_images[two_features[0]] > testing_images[two_features[1]]
+        classifier = create_decision_tree(sampled_images, sampled_images,[two_features[0]+"-"+two_features[1]],'orientation',0,1)
+        interim_results = []
+        for i in sample_range:
+            image = sampled_images[i:i+1]
+            tree_guess = predict_decision_tree(classifier, image)
+            interim_results.extend([[image.iloc[0]['filename'], tree_guess,image.iloc[0]['orientation'] ]])
         correct, total_items = count_correct(interim_results)
+        nozero = 1/float(total_items**2) # to prevent dividing by zero later on
         if k == 0:
             #initiate weights
             weights = [[1.0/float(total_items)]*total_items for j in range(len(orientations))]
             # print "starter weight sum",[sum(weights[i]) for i in range(len(orientations))]
         classifier_weights = []
         for o in range(len(orientations)):
-            print o, weights[o][0:5]
+            # print o, sum(weights[o]), weights[o][0:5]
             # calculate error
             error = 0
             other_orientations = [y for y in orientations if y != orientations[o]]
@@ -324,7 +339,9 @@ def adaboost_train():
                     pass
                 else:
                     error += weights[o][i] 
-            print "error",error
+            # print "error",error,
+            error = np.clip(error, nozero, 1-nozero)
+            # print error
             f = error / (1-error)
             for i in range(total_items):
                 if interim_results[i][1] != interim_results[i][2]:
@@ -336,13 +353,14 @@ def adaboost_train():
             # print "new normalized weights", weights[o][0:5]
             # print "sum",sum(weights[o])
             classifier_weights.extend([log((1-error)/error)])
-        classifiers_weighted.extend([[classifier[0],classifier_weights]])
+        classifiers_weighted.extend([[classifier,classifier_weights,two_features]])
 
     return classifiers_weighted
 
 def adaboost_test(classifiers, input_file):
     testing_images, test_features = import_for_trees(input_file)
-    testing_images = dt_filters(testing_images, test_features)
+    for classifier, weights, two_variables in classifiers:
+        testing_images[two_variables[0]+"-"+two_variables[1]] = testing_images[two_variables[0]] > testing_images[two_variables[1]]
     image_range = range(len(testing_images))
     results = []
     weighted_scores ={}
@@ -352,15 +370,17 @@ def adaboost_test(classifiers, input_file):
         for o in orientations:
             weighted_scores[o] = 0
         image = testing_images[i:i+1]
-        for classifier, weights in classifiers:
+        for classifier, weights, two_variables in classifiers:
             class_guess = predict_decision_tree(classifier,image)
+            # pprint(classifier)
+            # pprint(weights)
             for j in orientations_range:
                 other_o = [y for y in orientations if y != orientations[j]]
                 if class_guess not in other_o:
                     weighted_scores[orientations[j]] += weights[j] * 1.0
                 else:
                     weighted_scores[orientations[j]] += weights[j] * -1.0
-        print weighted_scores, max(weighted_scores.iteritems(), key=itemgetter(1))
+        print i, weighted_scores, max(weighted_scores.iteritems(), key=itemgetter(1))
         ada_guess = max(weighted_scores.iteritems(), key=itemgetter(1))[0]
         results.extend([[image.iloc[0]['filename'], ada_guess,image.iloc[0]['orientation'] ]])
             
@@ -374,8 +394,10 @@ if traintest == "train":
         forest = forest_train(input_file,50,20)
         pickle_out(forest)
     elif model =="adaboost":
-        classifiers = adaboost_train()
+        classifiers = adaboost_train(input_file)
         pickle_out(classifiers)
+    elif model =="best":
+        pass
     else:
         print "Unsupported Machine Learning Model."
 
@@ -396,6 +418,13 @@ elif traintest == "test":
         print "Classifying via Adaboost algorithm."
         classifiers = pickle_in(model_file)
         results = adaboost_test(classifiers,input_file)
+    # Testing only
+    # elif model == "adaboosttest":
+    #     classifiers = pickle_in(model_file)
+    #     # results = adaboost_test(classifiers,input_file)
+    #     profile.run("results = adaboost_test(classifiers,input_file)")
+    elif model =="best":
+        pass
     else:
         print "Unsupported Machine Learning Model."
 
@@ -408,13 +437,6 @@ elif traintest == "test":
 else:
     print "You entered an incorrect mode.  Only 'train' or 'test' are accepted."
     
-#### To Do    
-def adaboost():
-    pass
-
-def best():
-    pass
-
 def multiple_k(results):
     # This code was only used for testing to find optimal range for k
     total_images = len(results)
