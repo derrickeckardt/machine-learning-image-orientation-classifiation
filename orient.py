@@ -413,7 +413,7 @@ def best_test(ensemble_results, input_file):
     for j in range(len(results_nearest)):
         vote = Counter([results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]]).most_common(1)[0][0]  #, 
         results.extend([[results_nearest[j][0], vote, results_nearest[j][2]]])
-        print  results_nearest[j][2], "voted",vote, [results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]] # for testing 
+        # print  results_nearest[j][2], "voted",vote, [results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]] # for testing 
 
     return results
 
