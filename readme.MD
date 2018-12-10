@@ -57,7 +57,7 @@ As you cann see, there are a couple of regions where it seems to go up.  That's 
 
 In order to cut my run time for the testing, I had to use the python "profile" library to do so to find out what was using valuable resources.  This helped me see where I could easily save time.  It also helped me figure out what the most expensive operations where.  Surprisingly, it was the calculation of the square for the euclidean distance.  If you look at my code, you will see dozed of different ways that I attempted to calculate it.  The fastest way is what I implemented, where I actually created a dictionary of the squares of -256 through 256.
 
-The main thing that cut my run time down was that I kept a running list of the closest images, and then as I added together the euclidean distances, once it exceeded the maximum value of my closest images, I stopped considering that point.  This allowed me to cut my run time to around 6 minutes.  Hooray!
+The main thing that cut my run time down was that I kept a running list of the closest images, and then as I added together the euclidean distances, once it exceeded the maximum value of my closest images, I stopped considering that point.  This allowed me to cut my run time to around 5 minutes.  Hooray!
 
 ## Decision Forest
 
@@ -87,11 +87,13 @@ In terms of features, I created some features based on brightness of pixels, as 
 
 I ended up using 500 stumps, which was way more than I wanted to.  After that I still ended up with performance of 53.34%
 
+One of the trade-offs I made for time, which likely cost me a few points of accuracy was that my stumps use only 1% of their data points, which are randomly selected for each stump.  That makes the process much faster, at the expense of performance.
+
 There are likely many ways that I could improve it.  If I were to do it over, I would definitely find a better way to handle the multiple class nature of the code.
 
 ### Testing
 
-TBD
+Once again, testing was the easiest part of this, since the training had already been done, and I had grown 500 stumps.  I suspect, that if I had gone even higher, I might have gotten even better performance.  However, there is likely diminising returns,.
 
 ## Best -- Ensemble Voting
 
@@ -99,22 +101,27 @@ TBD
 
 One of the thing sthat interested me the most in this class that we didn't spend a lot of time on, was the thought to use some ensemble methods.  For my best method, I attempted to do a voting of the three methods.
 
-So, since I had already computed it three other ways, I just loaded these results into training file.  **In order to use this model, you must run the other three algorithms first.  It will then use that ouput to compute the ensemble result from the three of them**
+So, since I had already computed it three other ways, I actually do not generate anything for a training model, I just use the models from the other three algorithms, and just run those individual. If the training modules for the other three algorithms has not been completed, then you cannot use best.
 
 ### Testing
 
+Testing is straightforward, as I call the other three algorithms, record the results for all three, and then compute the most popular votes.  It does take a while to run, close to 10 minutes, but that is given by the fact it has to go through all the other algorithms first.
 
+Overall, the performance on this was in fact the best, since it produced an accuracy of .  
 
+By using this ensemble method, it allows us to account for the shortcomings of one method to the other ones.
 
-## Performance Accuraces
+## Performance Accuraces and Variations
 
 Below are the accuracies of the various algorithms:
 
-    Algorithm       Accuracy    Train Time  Test Time
-    kNN	            71.26%      1s          6 minutes
-    Decision Forest	67.13%      30 minutes  1 minutes
-    AdaBoost	    53.34%      16 minutes  8 minutes
-    Best - Voting	            10 seconds  10 seconds
+    Algorithm       Accuracy    Train Time  Test Time   Comments
+    kNN	            71.26%      1s          4 minutes   k = 50
+    Decision Forest	67.13%      30 minutes  1 minutes   50 trees at depth of 3
+    AdaBoost	    53.34%      16 minutes  4 minutes   500 stumps, using only features from the corner, trains with only 1% of the training data
+    Best - Voting	            1 seconds   9 minutes   votes on all three
+
+As I've mentioned, many trade-offs had to be made all along.  Adaboost was the most intensive in order to get the program running.
 
 
 ## What do I recommend
@@ -122,11 +129,7 @@ Below are the accuracies of the various algorithms:
 If you were my consulting client, after recommending a larger budget, I would recommend that you go with the kNN algorithm.  It provided me the highest 
 
 
-## Perforamnce Variations
 
-3) Which classiers and which parameters would you recommend to a potential client? 
-
-How does performance vary depending on the training dataset size, i.e. if you use just a fraction of the training data? 
 
 ## Sample Image Results
 

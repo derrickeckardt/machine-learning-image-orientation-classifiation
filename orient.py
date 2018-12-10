@@ -411,14 +411,18 @@ def best_test(ensemble_results, input_file):
     print "First, running kNN"
     results_nearest = nearest_test("nearest_model.txt", input_file, 50)
     print "Second, running Decision Forest"
-    results_forest = forest_test("forest_model.txt",input_file)
+    forest = pickle_in("forest_model.txt")
+    results_forest = forest_test(forest,input_file)
     print "Third and Final, running Adaboost"
-    results_adaboost = adaboost_test("adaboost_model.txt",input_file)
+    classifiers = pickle_in("adaboost_model.txt")
+    results_adaboost = adaboost_test(classifiers,input_file)
 
     results = []
     for j in range(len(results_adaboost)):
-        vote = Counter([results_nearest[j][1], results_forest[j][1], resultes_adaboost[j][1]]).most_common(1)[0][0]
+        vote = Counter([results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]]).most_common(1)[0][0]
         results.extend([[results_nearest[j][0], vote, results_nearest[j][2] ]])
+        # print  vote, [results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]] # for testing
+
     return results
 
     # test_images = import_images(input_file)
