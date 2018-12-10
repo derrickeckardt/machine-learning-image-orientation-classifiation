@@ -51,7 +51,7 @@ To calculate this, for the 192 features, I calculated the Euclidean distance of 
 
 I spent some effort to finding the optimal k.  I was able to modify my code such that I could find out my accuracies for k from 1 to 4000.  Surprisingly, the value of k didn't matter all that much.  It varied from 70 to 72% from k=9 all the way up to 4000.  In effect, there was not that big a deal.  For this test set, I found that the maximum was technically at k=48. I found that any k below 400 got over 71%.  Below is a chart showing the different k values.  it's a rolling average of the next k values, so that the chart would be a little smoother:
 
-![Rolling K Values -- How k varies](https://github.iu.edu/cs-b551-fa2018/derrick-a4/blob/master/part1/Rolling_Percent_vs_k.png "How k Varies")
+![Rolling K Values -- How k varies](https://github.iu.edu/cs-b551-fa2018/derrick-a4/blob/master/Rolling_Percent_vs_k.png "How k Varies")
 
 As you cann see, there are a couple of regions where it seems to go up.  That's around k = 50, and k = 325.  I choose to set my k to 50 for two reasons.  One, on a different traininset, 300-350 might not be as accurate, and it could be a bit of overfitting. It doesn't seem to follow the rest of the curve.  There is an increase, and then a gradual decline.  The peak around 325 seems more like an anomaly.  Secondly, for about the result, k=50 compared to k=325 is faster to compute.
 
@@ -105,7 +105,9 @@ So, since I had already computed it three other ways, I actually do not generate
 
 ### Testing
 
-Testing is straightforward, as I call the other three algorithms, record the results for all three, and then compute the most popular votes.  It does take a while to run, close to 10 minutes, but that is given by the fact it has to go through all the other algorithms first.
+The biggest trade-off I had to make here is that I decided not to use Adaboost.  Since that one's performance was so much worse than the other one, it added a lot of noise, and I got 68.18%, which was worse than kNN, but slightly better than my decision forest.  When I ran it with 
+
+Testing is straightforward, as I call the other three algorithms, record the results for all three, and then compute the most popular votes.  It does take a while to run, close to 10 minutes for all three, but that is given by the fact it has to go through all the other algorithms first.
 
 Overall, the performance on this was in fact the best, since it produced an accuracy of .  
 
@@ -115,22 +117,24 @@ By using this ensemble method, it allows us to account for the shortcomings of o
 
 Below are the accuracies of the various algorithms:
 
-    Algorithm       Accuracy    Train Time  Test Time   Comments
-    kNN	            71.26%      1s          4 minutes   k = 50
-    Decision Forest	67.13%      30 minutes  1 minutes   50 trees at depth of 3
-    AdaBoost	    53.34%      16 minutes  4 minutes   500 stumps, using only features from the corner, trains with only 1% of the training data
-    Best - Voting	            1 seconds   9 minutes   votes on all three
+    Algorithm         Accuracy    Train Time  Test Time   Comments
+    kNN	              71.26%      1s          4 minutes   k = 50
+    Decision Forest	  67.13%      30 minutes  1 minutes   50 trees at depth of 3
+    AdaBoost	      53.34%      16 minutes  4 minutes   500 stumps, using only features from the corner, trains with only 1% of the training data
+    Best - Voting (3) 68.19%      1 seconds   9 minutes   Votes from all three - default
+    Best - Voting (2) 68.08%	  1 seconds   5 minutes   Votes from the first two
 
-As I've mentioned, many trade-offs had to be made all along.  Adaboost was the most intensive in order to get the program running.
-
+As I've mentioned, many trade-offs had to be made all along.  Adaboost was the most intensive in order to get the program running, since it takes a very long time before it really is effective.  It's a good way to make use of weak classifiers, if those are the only options available.
 
 ## What do I recommend
 
-If you were my consulting client, after recommending a larger budget, I would recommend that you go with the kNN algorithm.  It provided me the highest 
-
-
-
+If you were my consulting client, after recommending a larger budget, I would recommend that you go with the kNN algorithm.  It provided me the highest accuracy at a relatively overall low cost in terms of time.  Also, it is the most intuitive. People understand that you are classifying by the things it is the most similar to.  It can easily be shown in two dimensions, which is not the same for decision forests and particularly adaboost. 
 
 ## Sample Image Results
 
-4) Show a few sample images that were classied correctly and incorrectly. Do you see any patterns to the errors?
+My favorite image, that my classifiers could not agree on in my test set was '
+test/13962200152.jpg', which is visible here.
+
+![Which way is the sky?](https://github.iu.edu/cs-b551-fa2018/derrick-a4/blob/master/13962200152.jpg "which way is the sky?")
+
+kNN said 180 degrees, while the decision forest said 90 degrees, and adaboost thought it was perfectly upright at 0 degrees.  With something like this, it very well could be any of those.  It almost isn't a fair fight.  Inspecting other images, it seemed that when there was something ambigous, then that introduced some level of concern.  In general, the majority of the time, all three classifiers found the same value, or two out of three.  They rarely disagreed.

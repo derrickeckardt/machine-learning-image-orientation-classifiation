@@ -395,14 +395,6 @@ def best_train():
     print "Training best classifier, which is an ensemble voting classifier of the other three classifiers used -- nearest, forest, and adaboost"
     ensemble = ['nearest','forest','adaboost']
     ensemble_results = []
-    # for algo in ensemble:
-    #     algo_results =[]
-    #     with open("output_"+algo+".txt", 'r') as file:
-    #         for line in file:
-    #             print line.split()
-    #             algo_results.extend([line.split()])
-    #     ensemble_results.extend([algo_results])   
-    # pprint(ensemble_results)
     print "There is no model to create, since it's dependent on the other models.  I am outputting a blank file."
     return ensemble_results
     
@@ -418,10 +410,10 @@ def best_test(ensemble_results, input_file):
     results_adaboost = adaboost_test(classifiers,input_file)
 
     results = []
-    for j in range(len(results_adaboost)):
-        vote = Counter([results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]]).most_common(1)[0][0]
-        results.extend([[results_nearest[j][0], vote, results_nearest[j][2] ]])
-        # print  vote, [results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]] # for testing
+    for j in range(len(results_nearest)):
+        vote = Counter([results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]]).most_common(1)[0][0]  #, 
+        results.extend([[results_nearest[j][0], vote, results_nearest[j][2]]])
+        print  results_nearest[j][2], "voted",vote, [results_nearest[j][1], results_forest[j][1], results_adaboost[j][1]] # for testing 
 
     return results
 
