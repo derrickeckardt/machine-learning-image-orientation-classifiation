@@ -305,11 +305,16 @@ def adaboost_train(input_file):
     testing_images, test_features = import_for_trees(input_file)
     orientations = [0.0, 90.0, 180.0, 270.0]
     classifiers_weighted =[]
-    for k in range(100):
+    # based on Piazza @742, only considered the pixels in the corners since they
+    # might provide biggest insight into color
+    pixels = ['1','2','7','8']
+    handpicked_features = [color+row+col for row in pixels for col in pixels for color in 'rgb' ]
+    for k in range(500):
         print "Training stump "+str(k)
-        sampled_images = training_images.sample(frac=0.1)
+        sampled_images = training_images.sample(frac=0.01)
         sample_range = range(len(sampled_images))
         # create new feature from two other ones
+        # two_features = random.sample(handpicked_features,2)
         two_features = random.sample(features,2)
         sampled_images[two_features[0]+"-"+two_features[1]] = sampled_images[two_features[0]] > sampled_images[two_features[1]]
         # testing_images['stump'] = testing_images[two_features[0]] > testing_images[two_features[1]]
@@ -380,7 +385,7 @@ def adaboost_test(classifiers, input_file):
                     weighted_scores[orientations[j]] += weights[j] * 1.0
                 else:
                     weighted_scores[orientations[j]] += weights[j] * -1.0
-        print i, weighted_scores, max(weighted_scores.iteritems(), key=itemgetter(1))
+        # print i, weighted_scores, max(weighted_scores.iteritems(), key=itemgetter(1))
         ada_guess = max(weighted_scores.iteritems(), key=itemgetter(1))[0]
         results.extend([[image.iloc[0]['filename'], ada_guess,image.iloc[0]['orientation'] ]])
             
