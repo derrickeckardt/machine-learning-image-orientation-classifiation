@@ -52,7 +52,7 @@ def import_images(input_file):
             splitline = line.split()
             # Had to convert these numbers into integers.
             # List of list, with format of [train_image, orientation, [rgb values]]
-            training_images.extend([[splitline[0][6:], int(splitline[1]), [int(value) for value in splitline[2:]]]])
+            training_images.extend([[splitline[0], int(splitline[1]), [int(value) for value in splitline[2:]]]])
     return training_images
     
 def import_for_trees(input_file):
@@ -214,7 +214,7 @@ def output(results):
     # Print to file
     output_file = open("output_"+model+".txt","w+")
     for image, guess, actual in results:
-        output_file.write(traintest + "/" + str(image) +" "+ str(guess)+"\n")  #add input image number, # add guess
+        output_file.write(str(image) +" "+ str(guess)+"\n")  #add input image number, # add guess
     output_file.close
     print "Individual test cases outputted to 'output_"+model+".txt'."
         
@@ -391,6 +391,49 @@ def adaboost_test(classifiers, input_file):
             
     return results
 
+def best_train():
+    print "Training best classifier, which is an ensemble voting classifier of the other three classifiers used -- nearest, forest, and adaboost"
+    ensemble = ['nearest','forest','adaboost']
+    ensemble_results = []
+    # for algo in ensemble:
+    #     algo_results =[]
+    #     with open("output_"+algo+".txt", 'r') as file:
+    #         for line in file:
+    #             print line.split()
+    #             algo_results.extend([line.split()])
+    #     ensemble_results.extend([algo_results])   
+    # pprint(ensemble_results)
+    print "There is no model to create, since it's dependent on the other models.  I am outputting a blank file."
+    return ensemble_results
+    
+def best_test(ensemble_results, input_file):
+    print "Overall runtime is around 10 minutes, depending on what else your computer is doing."
+    print "First, running kNN"
+    results_nearest = nearest_test("nearest_model.txt", input_file, 50)
+    print "Second, running Decision Forest"
+    results_forest = forest_test("forest_model.txt",input_file)
+    print "Third and Final, running Adaboost"
+    results_adaboost = adaboost_test("adaboost_model.txt",input_file)
+
+    results = []
+    for j in range(len(results_adaboost)):
+        vote = Counter([results_nearest[j][1], results_forest[j][1], resultes_adaboost[j][1]]).most_common(1)[0][0]
+        results.extend([[results_nearest[j][0], vote, results_nearest[j][2] ]])
+    return results
+
+    # test_images = import_images(input_file)
+    # print len(ensemble_results) 
+    # for nearest, forest, adaboost in ensemble_results:
+    #     for j in range(len(nearest)):
+    #         # check to make sure they are the same
+    #         if nearest[j][0] == adaboost[j][0] and adaboost[j][0] == forest[j][0]:
+    #             vote = Counter([nearest[j][1], forest[j][1], adaboost[j][1]]).most_common(1)[0][0]
+    #         else:
+    #             print "It appears that your output files are based on different datasets.  Please rerun"
+    #             break
+    #         results.extend([[nearest[j][0], vote, test_images[j][1]]])
+    # return results
+
 if traintest == "train":
     # Import train file
     if model == "nearest":
@@ -402,7 +445,10 @@ if traintest == "train":
         classifiers = adaboost_train(input_file)
         pickle_out(classifiers)
     elif model =="best":
-        pass
+        print "WARNING!! WARNING!!"
+        print "In order to run this algorithm successfully, you must run test cases nearest, forest, and adaboost first, and keep your output files in the same directory."
+        ensemble_results = best_train()
+        pickle_out(ensemble_results)
     else:
         print "Unsupported Machine Learning Model."
 
@@ -410,7 +456,7 @@ elif traintest == "test":
 
     if model == "nearest":
         print "Classifying via k-Nearest Neighbors algorithm."
-        k = 11 # based on results of code to find optimal range for k
+        k = 50 # based on results of code to find optimal range for k
         results = nearest_test(model_file, input_file, k)
 
         # Testing code to find slowest part of code
@@ -429,7 +475,10 @@ elif traintest == "test":
     #     # results = adaboost_test(classifiers,input_file)
     #     profile.run("results = adaboost_test(classifiers,input_file)")
     elif model =="best":
-        pass
+        print "WARNING!! WARNING!!"
+        print "This classifies based on majority vote of the other algorthms. It loads in the model of all of the algorithms, which are already in my folder."
+        ensemble_results = pickle_in(model_file)
+        results = best_test(ensemble_results, input_file)
     else:
         print "Unsupported Machine Learning Model."
 
